@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import Sidebar from './components/Sidebar';
-import Dashboard from './components/Dashboard';
-import HRCorner from './components/HRCorner';
-import LeaveManagement from './components/LeaveManagement';
-import Ticketing from './components/Ticketing';
-import AdminCorner from './components/AdminCorner';
-import LearningPage from './components/LearningPage';
-import TalentHub from './components/TalentHub';
-import Login from './components/Login';
-import { UserRole, User } from './types';
+import Sidebar from './Sidebar';
+import Dashboard from './Dashboard';
+import HRCorner from './HRCorner';
+import LeaveManagement from './LeaveManagement';
+import Ticketing from './Ticketing';
+import AdminCorner from './AdminCorner';
+import LearningPage from './LearningPage';
+import TalentHub from './TalentHub';
+import Login from './Login';
+import { UserRole, User } from '../types';
 import { Bell, Search, HelpCircle, LogOut } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -32,7 +32,7 @@ const App: React.FC = () => {
       }
     }
 
-    fetch('http://localhost:3001/api/employees')
+    fetch("http://localhost:3001/api/employees")
       .then((res) => res.json())
       .then((data) => {
         setEmployees(data);
