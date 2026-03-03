@@ -1,7 +1,8 @@
+import LeaveManagement from "./LeaveManagement";
 import React, { useEffect, useState } from "react";
 import Dashboard from "./Dashboard";
 import Login from "./Login";
-
+import LeavePanel from "./LeavePanel";
 type UserRole =
   | "EMPLOYEE"
   | "TL"
@@ -75,7 +76,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       <Dashboard employees={employees} onRefresh={fetchEmployees} />
-
+      <LeaveManagement/>
       {/* optional logout button */}
       <div className="fixed bottom-4 right-4">
         <button

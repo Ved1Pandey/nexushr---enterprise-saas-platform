@@ -29,6 +29,7 @@ const Dashboard: React.FC<{
   const [role, setRole] = useState("");
   const [status, setStatus] = useState("Active");
 
+  // ✅ ADD EMPLOYEE
   const handleAddEmployee = async () => {
     try {
       await fetch("http://localhost:3001/api/employees", {
@@ -36,11 +37,7 @@ const Dashboard: React.FC<{
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          name,
-          role,
-          status,
-        }),
+        body: JSON.stringify({ name, role, status }),
       });
 
       setShowForm(false);
@@ -54,6 +51,7 @@ const Dashboard: React.FC<{
     }
   };
 
+  // ✅ DELETE EMPLOYEE
   const handleDelete = async (id: number) => {
     try {
       await fetch(`http://localhost:3001/api/employees/${id}`, {
@@ -63,6 +61,22 @@ const Dashboard: React.FC<{
       onRefresh && onRefresh();
     } catch (err) {
       console.error("Delete failed", err);
+    }
+  };
+  // ✅ APPROVE / REJECT LEAVE
+  const handleStatus = async (id: number, newStatus: string) => {
+    try {
+      await fetch(`http://localhost:3001/api/leaves/${id}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      onRefresh && onRefresh();
+    } catch (err) {
+      console.error("Status update failed:", err);
     }
   };
 
@@ -76,7 +90,7 @@ const Dashboard: React.FC<{
           <h2 className="text-lg font-semibold">Employees</h2>
           <button
             onClick={() => setShowForm(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold"
           >
             + Add Employee
           </button>
@@ -131,7 +145,7 @@ const Dashboard: React.FC<{
           </thead>
 
           <tbody>
-            {(employees || []).map((emp) => (
+            {employees.map((emp) => (
               <tr key={emp.id}>
                 <td className="p-2">{emp.id}</td>
                 <td className="p-2">{emp.name}</td>
@@ -139,12 +153,26 @@ const Dashboard: React.FC<{
                 <td className={`py-2 ${getStatusColor(emp.status)}`}>
                   {emp.status}
                 </td>
-                <td>
+                <td className="space-x-2">
                   <button
                     onClick={() => handleDelete(emp.id)}
                     className="bg-red-500 text-white px-2 py-1 rounded"
                   >
                     Delete
+                  </button>
+
+                  <button
+                    onClick={() => handleStatus(emp.id, "APPROVED")}
+                    className="bg-green-600 text-white px-2 py-1 rounded"
+                  >
+                    Approve
+                  </button>
+
+                  <button
+                    onClick={() => handleStatus(emp.id, "REJECTED")}
+                    className="bg-yellow-600 text-white px-2 py-1 rounded"
+                  >
+                    Reject
                   </button>
                 </td>
               </tr>
