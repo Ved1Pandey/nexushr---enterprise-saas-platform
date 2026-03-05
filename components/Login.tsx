@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Lock, Mail, Loader2, ShieldCheck, AlertCircle } from 'lucide-react';
 import { UserRole } from '../types';
@@ -13,29 +12,33 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    // Simulate API call with role derivation logic
-    setTimeout(() => {
-      if (password === 'password123') {
-        let role: UserRole = 'EMPLOYEE';
-        const lowerEmail = email.toLowerCase();
-        
-        if (lowerEmail.startsWith('admin')) role = 'ADMIN';
-        else if (lowerEmail.startsWith('vp')) role = 'VP';
-        else if (lowerEmail.startsWith('srmgr')) role = 'SR_MANAGER';
-        else if (lowerEmail.startsWith('mgr')) role = 'MANAGER';
-        else if (lowerEmail.startsWith('tl')) role = 'TL';
-        
-        onLogin(email, role);
-      } else {
-        setError('Invalid credentials. Hint: use any email and "password123". Use prefixes like "vp@", "admin@", "mgr@" for different roles.');
-        setIsLoading(false);
-      }
-    }, 1200);
+    const res = await fetch("http://localhost:3001/api/login", {
+ method: "POST",
+ headers: {
+  "Content-Type": "application/json"
+ },
+ body: JSON.stringify({
+  email,
+  password
+ })
+});
+
+const data = await res.json();
+
+if(res.ok){
+
+localStorage.setItem("userId", data.id)
+localStorage.setItem("name", data.name)
+localStorage.setItem("role", data.role)
+onLogin(email, data.role)
+}else{
+setError(data.error)
+}
   };
 
   return (
@@ -48,7 +51,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">NexusHR</h1>
           <p className="text-slate-500 mt-2 font-medium text-sm">Enterprise Human Resource Suite</p>
         </div>
-
         <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/60 p-8 border border-slate-100">
           <h2 className="text-xl font-bold text-slate-800 mb-6">Sign In</h2>
           

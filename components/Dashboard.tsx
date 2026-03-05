@@ -5,6 +5,7 @@ interface Employee {
   name: string;
   role: string;
   status: string;
+  leave_balance: number;
 }
 
 const getStatusColor = (status: string) => {
@@ -65,6 +66,10 @@ const Dashboard: React.FC<{
   };
   // ✅ APPROVE / REJECT LEAVE
   const handleStatus = async (id: number, newStatus: string) => {
+    const emp = employees.find(e => e.id === id);
+    if (emp && emp.status !== "PENDING") {
+    return;
+    }
     try {
       await fetch(`http://localhost:3001/api/leaves/${id}/status`, {
         method: "PATCH",
@@ -73,8 +78,8 @@ const Dashboard: React.FC<{
         },
         body: JSON.stringify({ status: newStatus }),
       });
-
-      onRefresh && onRefresh();
+     window.location.reload();
+                          
     } catch (err) {
       console.error("Status update failed:", err);
     }
@@ -82,6 +87,31 @@ const Dashboard: React.FC<{
 
   return (
     <div className="min-h-screen bg-slate-50 p-6">
+      {/* DASHBOARD HEADER */}
+       <div className="flex justify-between items-center mb-6">
+<h2 className="text-xl font-bold">NexusHR Dashboard</h2>
+   <div className="flex items-center gap-3">
+     <span className="font-semibold">
+          {localStorage.getItem("name")}
+        </span>
+     <span className="text-sm text-gray-500">
+          {localStorage.getItem("role")}
+        </span>
+
+        <button
+          onClick={()=>{
+            localStorage.clear()
+            window.location.reload()
+          }}
+          className="bg-red-500 text-white px-3 py-1 rounded"
+        >
+          Logout
+        </button>
+
+      </div>
+
+    </div>
+
       <h1 className="text-2xl font-bold mb-4">Dashboard Working ✅</h1>
       <p className="mb-6">Total employees: {employees.length}</p>
 
@@ -139,6 +169,7 @@ const Dashboard: React.FC<{
               <th className="text-left p-2">ID</th>
               <th className="text-left p-2">Name</th>
               <th className="text-left p-2">Role</th>
+              <th className="text-left p-2">Leave Balance </th>
               <th className="text-left p-2">Status</th>
               <th className="text-left p-2">Action</th>
             </tr>
@@ -150,9 +181,10 @@ const Dashboard: React.FC<{
                 <td className="p-2">{emp.id}</td>
                 <td className="p-2">{emp.name}</td>
                 <td className="p-2">{emp.role}</td>
-                <td className={`py-2 ${getStatusColor(emp.status)}`}>
-                  {emp.status}
-                </td>
+                <td className="p-2">{emp.leave_balance}</td>
+<td className={`py-2 ${getStatusColor(emp.status)}`}>
+{emp.status}
+</td>
                 <td className="space-x-2">
                   <button
                     onClick={() => handleDelete(emp.id)}
@@ -160,21 +192,26 @@ const Dashboard: React.FC<{
                   >
                     Delete
                   </button>
+                 {emp.status !== "APPROVED" && emp.status !== "REJECTED" && (
+<>
+<button
+disabled={emp.status !== "PENDING"}
+onClick={() => handleStatus(emp.id, "APPROVED")}
+className="bg-green-600 text-white px-2 py-1 rounded"
+>
+Approve
+</button>
 
-                  <button
-                    onClick={() => handleStatus(emp.id, "APPROVED")}
-                    className="bg-green-600 text-white px-2 py-1 rounded"
-                  >
-                    Approve
-                  </button>
-
-                  <button
-                    onClick={() => handleStatus(emp.id, "REJECTED")}
-                    className="bg-yellow-600 text-white px-2 py-1 rounded"
-                  >
-                    Reject
-                  </button>
-                </td>
+<button
+disabled={emp.status !== "PENDING"}
+onClick={() => handleStatus(emp.id, "REJECTED")}
+className="bg-yellow-600 text-white px-2 py-1 rounded"
+>
+Reject
+</button>
+</>
+)}
+                  </td>
               </tr>
             ))}
           </tbody>
@@ -185,3 +222,4 @@ const Dashboard: React.FC<{
 };
 
 export default Dashboard;
+

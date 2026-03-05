@@ -10,6 +10,7 @@ interface Leave {
 }
 
 const LeaveManagement: React.FC = () => {
+  const role = localStorage.getItem("role") || "Employee"
   const [leaves, setLeaves] = useState<Leave[]>([]);
   const [loading, setLoading] = useState(false);
   const [fromDate, setFromDate] = useState("")
@@ -149,20 +150,24 @@ const applyLeave = async () => {
                 </td>
 
                 <td className="p-3 space-x-2">
-                  <button
-                    onClick={() => handleStatus(leave.id, "APPROVED")}
-                    className="bg-green-600 text-white px-2 py-1 rounded text-sm"
-                  >
-                    Approve
-                  </button>
+  {role === "MANAGER" && (
+    <>
+      <button
+        onClick={() => handleStatus(leave.id, "APPROVED")}
+        className="bg-green-600 text-white px-2 py-1 rounded text-sm"
+      >
+        Approve
+      </button>
 
-                  <button
-                    onClick={() => handleStatus(leave.id, "REJECTED")}
-                    className="bg-yellow-600 text-white px-2 py-1 rounded text-sm"
-                  >
-                    Reject
-                  </button>
-                </td>
+      <button
+        onClick={() => handleStatus(leave.id, "REJECTED")}
+        className="bg-yellow-600 text-white px-2 py-1 rounded text-sm"
+      >
+        Reject
+      </button>
+    </>
+  )}
+</td>
               </tr>
             ))}
 
