@@ -1,225 +1,200 @@
 import React, { useState } from "react";
 
 interface Employee {
-  id: number;
-  name: string;
-  role: string;
-  status: string;
-  leave_balance: number;
+id: number;
+name: string;
+role: string;
+status: string;
+leave_balance: number;
 }
 
 const getStatusColor = (status: string) => {
-  switch (status) {
-    case "Active":
-      return "text-green-600 font-semibold";
-    case "On Leave":
-      return "text-yellow-600 font-semibold";
-    case "Inactive":
-      return "text-red-600 font-semibold";
-    default:
-      return "text-gray-600";
-  }
+switch (status) {
+case "Active":
+return "text-green-600 font-semibold";
+case "On Leave":
+return "text-yellow-600 font-semibold";
+case "Inactive":
+return "text-red-600 font-semibold";
+default:
+return "text-gray-600";
+}
 };
 
 const Dashboard: React.FC<{
-  employees?: Employee[];
-  onRefresh?: () => void;
+employees?: Employee[];
+onRefresh?: () => void;
 }> = ({ employees = [], onRefresh }) => {
-  const [showForm, setShowForm] = useState(false);
-  const [name, setName] = useState("");
-  const [role, setRole] = useState("");
-  const [status, setStatus] = useState("Active");
+const [showForm, setShowForm] = useState(false);
+const [name, setName] = useState("");
+const [role, setRole] = useState("");
+const [status, setStatus] = useState("Active");
 
-  // ✅ ADD EMPLOYEE
-  const handleAddEmployee = async () => {
-    try {
-      await fetch("http://localhost:3001/api/employees", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, role, status }),
-      });
+const handleAddEmployee = async () => {
+try {
+await fetch("http://localhost:3001/api/employees", {
+method: "POST",
+headers: {
+"Content-Type": "application/json",
+},
+body: JSON.stringify({ name, role, status }),
+});
 
-      setShowForm(false);
-      setName("");
-      setRole("");
-      setStatus("Active");
+  setShowForm(false);
+  setName("");
+  setRole("");
+  setStatus("Active");
 
-      onRefresh && onRefresh();
-    } catch (err) {
-      console.error("Add failed", err);
-    }
-  };
+  onRefresh && onRefresh();
+} catch (err) {
+  console.error("Add failed", err);
+}
 
-  // ✅ DELETE EMPLOYEE
-  const handleDelete = async (id: number) => {
-    try {
-      await fetch(`http://localhost:3001/api/employees/${id}`, {
-        method: "DELETE",
-      });
+};
 
-      onRefresh && onRefresh();
-    } catch (err) {
-      console.error("Delete failed", err);
-    }
-  };
-  // ✅ APPROVE / REJECT LEAVE
-  const handleStatus = async (id: number, newStatus: string) => {
-    const emp = employees.find(e => e.id === id);
-    if (emp && emp.status !== "PENDING") {
-    return;
-    }
-    try {
-      await fetch(`http://localhost:3001/api/leaves/${id}/status`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
-     window.location.reload();
-                          
-    } catch (err) {
-      console.error("Status update failed:", err);
-    }
-  };
+const handleDelete = async (id: number) => {
+try {
+await fetch("http://localhost:3001/api/employees/${id}", {
+method: "DELETE",
+});
 
-  return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      {/* DASHBOARD HEADER */}
-       <div className="flex justify-between items-center mb-6">
-<h2 className="text-xl font-bold">NexusHR Dashboard</h2>
-   <div className="flex items-center gap-3">
-     <span className="font-semibold">
-          {localStorage.getItem("name")}
-        </span>
-     <span className="text-sm text-gray-500">
-          {localStorage.getItem("role")}
-        </span>
+  onRefresh && onRefresh();
+} catch (err) {
+  console.error("Delete failed", err);
+}
+
+};
+
+return (
+<div className="min-h-screen bg-slate-50 p-6">
+
+  <div className="flex justify-between items-center mb-6">
+    <h2 className="text-xl font-bold">NexusHR Dashboard</h2>
+
+    <div className="flex items-center gap-3">
+      <span className="font-semibold">
+        {localStorage.getItem("name")}
+      </span>
+
+      <span className="text-sm text-gray-500">
+        {localStorage.getItem("role")}
+      </span>
+
+      <button
+        onClick={() => {
+          localStorage.clear();
+          window.location.reload();
+        }}
+        className="bg-red-500 text-white px-3 py-1 rounded"
+      >
+        Logout
+      </button>
+    </div>
+  </div>
+
+  <h1 className="text-2xl font-bold mb-4">Dashboard Working ✅</h1>
+  <p className="mb-6">Total employees: {employees.length}</p>
+
+  <div className="bg-white rounded-xl shadow p-4">
+
+    <div className="flex justify-between items-center mb-3">
+      <h2 className="text-lg font-semibold">Employees</h2>
+
+      <button
+        onClick={() => setShowForm(true)}
+        className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold"
+      >
+        + Add Employee
+      </button>
+    </div>
+
+    {showForm && (
+      <div className="mb-4 p-4 border rounded bg-gray-50 space-y-3">
+
+        <input
+          type="text"
+          placeholder="Employee Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="border p-2 w-full rounded"
+        />
+
+        <input
+          type="text"
+          placeholder="Role"
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
+          className="border p-2 w-full rounded"
+        />
+
+        <select
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          className="border p-2 w-full rounded"
+        >
+          <option value="Active">Active</option>
+          <option value="On Leave">On Leave</option>
+          <option value="Inactive">Inactive</option>
+        </select>
 
         <button
-          onClick={()=>{
-            localStorage.clear()
-            window.location.reload()
-          }}
-          className="bg-red-500 text-white px-3 py-1 rounded"
+          onClick={handleAddEmployee}
+          className="bg-green-600 text-white px-4 py-2 rounded"
         >
-          Logout
+          Save Employee
         </button>
 
       </div>
+    )}
 
-    </div>
+    <table className="w-full border">
 
-      <h1 className="text-2xl font-bold mb-4">Dashboard Working ✅</h1>
-      <p className="mb-6">Total employees: {employees.length}</p>
+      <thead className="bg-slate-100">
+        <tr>
+          <th className="text-left p-2">ID</th>
+          <th className="text-left p-2">Name</th>
+          <th className="text-left p-2">Role</th>
+          <th className="text-left p-2">Leave Balance</th>
+          <th className="text-left p-2">Status</th>
+          <th className="text-left p-2">Action</th>
+        </tr>
+      </thead>
 
-      <div className="bg-white rounded-xl shadow p-4">
-        <div className="flex justify-between items-center mb-3">
-          <h2 className="text-lg font-semibold">Employees</h2>
-          <button
-            onClick={() => setShowForm(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold"
-          >
-            + Add Employee
-          </button>
-        </div>
+      <tbody>
+        {employees.map((emp) => (
+          <tr key={emp.id}>
 
-        {showForm && (
-          <div className="mb-4 p-4 border rounded bg-gray-50 space-y-3">
-            <input
-              type="text"
-              placeholder="Employee Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="border p-2 w-full rounded"
-            />
+            <td className="p-2">{emp.id}</td>
 
-            <input
-              type="text"
-              placeholder="Role"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="border p-2 w-full rounded"
-            />
+            <td className="p-2">{emp.name}</td>
 
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="border p-2 w-full rounded"
-            >
-              <option value="Active">Active</option>
-              <option value="On Leave">On Leave</option>
-              <option value="Inactive">Inactive</option>
-            </select>
+            <td className="p-2">{emp.role}</td>
 
-            <button
-              onClick={handleAddEmployee}
-              className="bg-green-600 text-white px-4 py-2 rounded"
-            >
-              Save Employee
-            </button>
-          </div>
-        )}
+            <td className="p-2">{emp.leave_balance}</td>
 
-        <table className="w-full border">
-          <thead className="bg-slate-100">
-            <tr>
-              <th className="text-left p-2">ID</th>
-              <th className="text-left p-2">Name</th>
-              <th className="text-left p-2">Role</th>
-              <th className="text-left p-2">Leave Balance </th>
-              <th className="text-left p-2">Status</th>
-              <th className="text-left p-2">Action</th>
-            </tr>
-          </thead>
+            <td className={`py-2 ${getStatusColor(emp.status)}`}>
+              {emp.status}
+            </td>
 
-          <tbody>
-            {employees.map((emp) => (
-              <tr key={emp.id}>
-                <td className="p-2">{emp.id}</td>
-                <td className="p-2">{emp.name}</td>
-                <td className="p-2">{emp.role}</td>
-                <td className="p-2">{emp.leave_balance}</td>
-<td className={`py-2 ${getStatusColor(emp.status)}`}>
-{emp.status}
-</td>
-                <td className="space-x-2">
-                  <button
-                    onClick={() => handleDelete(emp.id)}
-                    className="bg-red-500 text-white px-2 py-1 rounded"
-                  >
-                    Delete
-                  </button>
-                 {emp.status !== "APPROVED" && emp.status !== "REJECTED" && (
-<>
-<button
-disabled={emp.status !== "PENDING"}
-onClick={() => handleStatus(emp.id, "APPROVED")}
-className="bg-green-600 text-white px-2 py-1 rounded"
->
-Approve
-</button>
+            <td className="space-x-2">
+              <button
+                onClick={() => handleDelete(emp.id)}
+                className="bg-red-500 text-white px-2 py-1 rounded"
+              >
+                Delete
+              </button>
+            </td>
 
-<button
-disabled={emp.status !== "PENDING"}
-onClick={() => handleStatus(emp.id, "REJECTED")}
-className="bg-yellow-600 text-white px-2 py-1 rounded"
->
-Reject
-</button>
-</>
-)}
-                  </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
+          </tr>
+        ))}
+      </tbody>
+
+    </table>
+
+  </div>
+</div>
+
+);
 };
 
 export default Dashboard;
-
