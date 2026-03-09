@@ -19,11 +19,15 @@ const App: React.FC = () => {
   const [userEmail, setUserEmail] = useState("");
   const [role, setRole] = useState<UserRole>("EMPLOYEE");
 
-  // 👇 page switch
+  // page switch
   const [page, setPage] = useState("dashboard");
 
-  // fetch employees
+  // =========================
+  // FETCH EMPLOYEES
+  // =========================
+
   const fetchEmployees = async () => {
+
     try {
 
       const res = await fetch("http://localhost:3001/api/employees");
@@ -39,9 +43,13 @@ const App: React.FC = () => {
       setEmployees([]);
 
     }
+
   };
 
-  // load app
+  // =========================
+  // LOAD APP
+  // =========================
+
   useEffect(() => {
 
     const savedAuth = localStorage.getItem("nexus_auth");
@@ -53,9 +61,7 @@ const App: React.FC = () => {
         const parsed = JSON.parse(savedAuth);
 
         setUserEmail(parsed.email);
-
         setRole(parsed.role);
-
         setIsAuthenticated(true);
 
       } catch {
@@ -70,13 +76,14 @@ const App: React.FC = () => {
 
   }, []);
 
-  // login
+  // =========================
+  // LOGIN
+  // =========================
+
   const handleLogin = (email: string, userRole: UserRole) => {
 
     setUserEmail(email);
-
     setRole(userRole);
-
     setIsAuthenticated(true);
 
     localStorage.setItem(
@@ -86,7 +93,10 @@ const App: React.FC = () => {
 
   };
 
-  // logout
+  // =========================
+  // LOGOUT
+  // =========================
+
   const handleLogout = () => {
 
     setIsAuthenticated(false);
@@ -95,14 +105,20 @@ const App: React.FC = () => {
 
   };
 
-  // not logged
+  // =========================
+  // NOT LOGGED IN
+  // =========================
+
   if (!isAuthenticated) {
 
     return <Login onLogin={handleLogin} />;
 
   }
 
-  // main app
+  // =========================
+  // MAIN APP
+  // =========================
+
   return (
 
     <div className="min-h-screen bg-slate-50">
