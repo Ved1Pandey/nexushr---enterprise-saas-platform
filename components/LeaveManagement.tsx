@@ -37,12 +37,12 @@ const LeaveManagement: React.FC = () => {
       let filtered = data;
 
       // Employee sees only own leaves
-      if (role === "EMPLOYEE") {
-        filtered = data.filter(
-          (l: Leave) =>
-            String(l.employee_id) === String(employeeId)
-        );
-      }
+      // if (role === "EMPLOYEE") {
+      //  filtered = data.filter(
+      //  (l: Leave) =>
+      //      String(l.employee_id) === String(employeeId)
+      //  );
+      //}
 
       // Pending always top
       filtered = filtered.sort((a: Leave, b: Leave) => {
@@ -221,9 +221,8 @@ const LeaveManagement: React.FC = () => {
               <tr key={leave.id} className="border-t">
 
                 <td className="p-3">
-                  Emp #{leave.employee_id}
+                {leave.employees?.name || `Emp #${leave.employee_id}`}
                 </td>
-
                 <td className="p-3">{leave.from_date}</td>
                 <td className="p-3">{leave.to_date}</td>
                 <td className="p-3">{leave.reason}</td>

@@ -6,10 +6,10 @@ const [fromDate,setFromDate] = useState("")
 const [toDate,setToDate] = useState("")
 const [reason,setReason] = useState("")
 
-const employeeId = localStorage.getItem("id")
-
+const employeeId =
+localStorage.getItem("employeeId")
 const handleApplyLeave = async () => {
-
+const employeeId = localStorage.getItem("id")
 await fetch("http://localhost:3001/api/leaves",{
 
 method:"POST",
