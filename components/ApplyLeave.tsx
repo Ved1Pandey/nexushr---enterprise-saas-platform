@@ -1,3 +1,4 @@
+import { log } from "console";
 import React, { useState } from "react";
 
 const ApplyLeave: React.FC = () => {
@@ -6,18 +7,18 @@ const [fromDate,setFromDate] = useState("")
 const [toDate,setToDate] = useState("")
 const [reason,setReason] = useState("")
 
-const employeeId =
-localStorage.getItem("employeeId")
 const handleApplyLeave = async () => {
-const employeeId = localStorage.getItem("id")
-await fetch("http://localhost:3001/api/leaves",{
 
+const employeeId = Number (localStorage.getItem("id"))
+console.log ("EmployeeId:",employeeId)
+if(!employeeId) {alert("User not logged in")
+    return 
+}
+const res = await fetch("http://localhost:3001/api/leaves",{
 method:"POST",
-
 headers:{
 "Content-Type":"application/json"
 },
-
 body:JSON.stringify({
 employee_id:employeeId,
 from_date:fromDate,
@@ -26,7 +27,7 @@ reason:reason
 })
 
 })
-
+const data = await res.json ()
 alert("Leave applied")
 
 }
@@ -61,7 +62,7 @@ onChange={(e)=>setReason(e.target.value)}
 
 <button
 onClick={handleApplyLeave}
-className="bg-blue-600 text-white px-4 py-2 rounded"
+className ="bg-blue-600 text-white px-4 py-2 rounded"
 >
 Submit Leave
 </button>
