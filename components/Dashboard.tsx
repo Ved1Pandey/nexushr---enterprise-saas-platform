@@ -29,7 +29,31 @@ const [showForm, setShowForm] = useState(false)
 const [name, setName] = useState("")
 const [role, setRole] = useState("")
 const [status, setStatus] = useState("Active")
+const [team, setTeam] = useState<any[]>([])
 const handleAddEmployee = async () => {
+useEffect(() => {
+
+  const fetchTeam = async () => {
+
+    const managerId = Number(localStorage.getItem("id"));
+
+    if (!managerId) return;
+
+    const res = await fetch(`http://localhost:3001/api/team/${localStorage.getItem("id")}/${localStorage.getItem("role")}`)
+;
+    const data = await res.json();
+
+    console.log("TEAM DATA:", data);
+
+    setTeam(data);
+  };
+
+  if (userRole === "MANAGER") {
+    fetchTeam();
+  }
+
+}, []);
+
 
 try{
 
@@ -61,7 +85,26 @@ console.error("Add failed",err)
 }
 
 }
+useEffect(() => {
 
+  const fetchTeam = async () => {
+
+    const managerId = Number(localStorage.getItem("id"));
+
+    const res = await fetch(`http://localhost:3001/api/team/${managerId}`);
+    const data = await res.json();
+
+    console.log("TEAM DATA:", data);
+
+    setTeam(data);
+
+  };
+
+  if(userRole === "MANAGER"){
+    fetchTeam();
+  }
+
+}, []);
 const handleDelete = async (id:number) => {
 
 try{
@@ -152,6 +195,29 @@ Delete
 </tbody>
 
 </table>
+<div className="mt-6">
+
+  <h3 className="font-bold mb-2">
+    My Team
+  </h3>
+
+  {team.length === 0 && (
+    <p>No team members</p>
+  )}
+
+  {team.map((emp:any) => (
+
+    <div key={emp.id} className="border p-2 mb-2 rounded">
+
+      <p>Name: {emp.name}</p>
+      <p>Role: {emp.role}</p>
+
+    </div>
+
+  ))}
+
+</div>
+
 </div>
 
 )}

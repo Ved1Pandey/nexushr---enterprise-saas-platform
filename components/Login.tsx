@@ -23,14 +23,16 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   "Content-Type": "application/json"
  },
  body: JSON.stringify({
-  email,
-  password
+  email: email.trim().toLowerCase(),
+  password: password.trim()
  })
 });
 
 const data = await res.json();
 
 if(res.ok){
+
+localStorage.clear();
 
 localStorage.setItem("id", data.id)
 localStorage.setItem("name", data.name)
@@ -39,6 +41,7 @@ onLogin(email, data.role)
 }else{
 setError(data.error)
 }
+setIsLoading(false)
   };
 
   return (

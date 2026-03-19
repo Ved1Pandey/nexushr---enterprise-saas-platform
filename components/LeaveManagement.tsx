@@ -7,12 +7,15 @@ interface Leave {
   to_date: string;
   reason: string;
   status: string;
+  employees?: {
+    name: string;
+  };
 }
 
 const LeaveManagement: React.FC = () => {
 
-  const role = localStorage.getItem("role") || "EMPLOYEE";
-  const employeeId = localStorage.getItem("id");
+  const role = localStorage.getItem("role") || "Employee";
+  const employeeId = Number(localStorage.getItem("id"));
 
   const [leaves, setLeaves] = useState<Leave[]>([]);
   const [loading, setLoading] = useState(false);
@@ -22,50 +25,26 @@ const LeaveManagement: React.FC = () => {
   const [reason, setReason] = useState("");
 
   // =========================
-  // FETCH LEAVES
+  // 🔥 FETCH LEAVES (FIXED)
   // =========================
 
   const fetchLeaves = async () => {
-
     try {
-
       setLoading(true);
 
-      const res = await fetch("http://localhost:3001/api/leaves");
+      const res = await fetch(
+        `http://localhost:3001/api/leaves/${employeeId}/${role}`
+      );
+
       const data = await res.json();
 
-      let filtered = data;
-
-      // Employee sees only own leaves
-      // if (role === "EMPLOYEE") {
-      //  filtered = data.filter(
-      //  (l: Leave) =>
-      //      String(l.employee_id) === String(employeeId)
-      //  );
-      //}
-
-      // Pending always top
-      filtered = filtered.sort((a: Leave, b: Leave) => {
-
-        if (a.status === "PENDING") return -1;
-        if (b.status === "PENDING") return 1;
-
-        return 0;
-
-      });
-
-      setLeaves(filtered);
+      setLeaves(data);
 
     } catch (err) {
-
-      console.error("Failed to fetch leaves", err);
-
+      console.error("Fetch error:", err);
     } finally {
-
       setLoading(false);
-
     }
-
   };
 
   // =========================
@@ -75,7 +54,7 @@ const LeaveManagement: React.FC = () => {
   const applyLeave = async () => {
 
     if (!fromDate || !toDate || !reason) {
-      alert("Please fill all fields");
+      alert("Fill all fields");
       return;
     }
 
@@ -87,7 +66,7 @@ const LeaveManagement: React.FC = () => {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          employee_id: Number(employeeId),
+          employee_id: employeeId,
           from_date: fromDate,
           to_date: toDate,
           reason: reason
@@ -101,18 +80,15 @@ const LeaveManagement: React.FC = () => {
       fetchLeaves();
 
     } catch (err) {
-
-      console.error("Leave apply failed:", err);
-
+      console.error("Apply error:", err);
     }
-
   };
 
   // =========================
   // APPROVE / REJECT
   // =========================
 
-  const handleStatus = async (id: number, newStatus: string) => {
+  const handleStatus = async (id: number, status: string) => {
 
     try {
 
@@ -121,17 +97,14 @@ const LeaveManagement: React.FC = () => {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ status: newStatus })
+        body: JSON.stringify({ status })
       });
 
       fetchLeaves();
 
     } catch (err) {
-
-      console.error("Status update failed:", err);
-
+      console.error("Status error:", err);
     }
-
   };
 
   useEffect(() => {
@@ -146,9 +119,9 @@ const LeaveManagement: React.FC = () => {
         Leave Management 🚀
       </h2>
 
-      {/* APPLY LEAVE */}
+      {/* ================= APPLY LEAVE ================= */}
 
-      {role === "EMPLOYEE" && (
+      {role === "Employee" && (
 
         <div className="mb-6 p-4 bg-white rounded-xl shadow">
 
@@ -184,7 +157,7 @@ const LeaveManagement: React.FC = () => {
               onClick={applyLeave}
               className="bg-blue-600 text-white px-4 py-2 rounded"
             >
-              Apply Leave
+              Apply
             </button>
 
           </div>
@@ -193,88 +166,61 @@ const LeaveManagement: React.FC = () => {
 
       )}
 
+      {/* ================= TABLE ================= */}
+
       {loading && <p>Loading...</p>}
 
-      {/* LEAVE TABLE */}
+      <div className="bg-white rounded-xl shadow">
 
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+        <table className="w-full">
 
-        <table className="w-full text-left">
-
-          <thead className="bg-slate-200 text-sm uppercase">
-
+          <thead className="bg-gray-200">
             <tr>
-              <th className="p-3">Employee</th>
-              <th className="p-3">From</th>
-              <th className="p-3">To</th>
-              <th className="p-3">Reason</th>
-              <th className="p-3">Status</th>
-              <th className="p-3">Action</th>
+              <th className="p-2">Employee</th>
+              <th className="p-2">From</th>
+              <th className="p-2">To</th>
+              <th className="p-2">Reason</th>
+              <th className="p-2">Status</th>
+              <th className="p-2">Action</th>
             </tr>
-
           </thead>
 
           <tbody>
 
-            {leaves.map((leave) => (
+            {leaves.map((l) => (
 
-              <tr key={leave.id} className="border-t">
+              <tr key={l.id} className="border-t">
 
-                <td className="p-3">
-                {leave.employees?.name || `Emp #${leave.employee_id}`}
-                </td>
-                <td className="p-3">{leave.from_date}</td>
-                <td className="p-3">{leave.to_date}</td>
-                <td className="p-3">{leave.reason}</td>
-
-                <td className="p-3 font-semibold">
-
-                  {leave.status === "APPROVED" && (
-                    <span className="text-green-600">
-                      APPROVED
-                    </span>
-                  )}
-
-                  {leave.status === "REJECTED" && (
-                    <span className="text-red-600">
-                      REJECTED
-                    </span>
-                  )}
-
-                  {leave.status === "PENDING" && (
-                    <span className="text-yellow-600">
-                      PENDING
-                    </span>
-                  )}
-
+                <td className="p-2">
+                  {l.employees?.name || `Emp ${l.employee_id}`}
                 </td>
 
-                <td className="p-3 space-x-2">
+                <td className="p-2">{l.from_date}</td>
+                <td className="p-2">{l.to_date}</td>
+                <td className="p-2">{l.reason}</td>
 
-                  {role === "MANAGER" && leave.status === "PENDING" && (
+                <td className="p-2 font-bold">
+                  {l.status}
+                </td>
 
+                <td className="p-2">
+
+                  {(role === "Manager" || role === "Team Lead") && l.status === "PENDING" && (
                     <>
                       <button
-                        onClick={() => handleStatus(leave.id, "APPROVED")}
-                        className="bg-green-600 text-white px-3 py-1 rounded text-sm"
+                        onClick={() => handleStatus(l.id, "APPROVED")}
+                        className="bg-green-600 text-white px-2 py-1 mr-2 rounded"
                       >
                         Approve
                       </button>
 
                       <button
-                        onClick={() => handleStatus(leave.id, "REJECTED")}
-                        className="bg-red-600 text-white px-3 py-1 rounded text-sm"
+                        onClick={() => handleStatus(l.id, "REJECTED")}
+                        className="bg-red-600 text-white px-2 py-1 rounded"
                       >
                         Reject
                       </button>
                     </>
-
-                  )}
-
-                  {leave.status !== "PENDING" && (
-                    <span className="text-gray-400 text-sm">
-                      Completed
-                    </span>
                   )}
 
                 </td>
