@@ -4,24 +4,21 @@ interface Attendance {
   id: number;
   employee_id: number;
   date: string;
-  status: string;
+  check_in: string;
+  check_out: string;
 }
 
 const AttendancePage: React.FC = () => {
 
   const employeeId = Number(localStorage.getItem("id"));
-  const role = localStorage.getItem("role");
+  const role = (localStorage.getItem("role") || "").toLowerCase();
 
   const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // =========================
-  // FETCH ATTENDANCE
-  // =========================
-
-  const fetchAttendance = async () => {
+  // ================= FETCH =================
+const fetchAttendance = async () => {
     try {
-
       setLoading(true);
 
       const res = await fetch(
@@ -29,8 +26,7 @@ const AttendancePage: React.FC = () => {
       );
 
       const data = await res.json();
-
-      setAttendance(data);
+      setAttendance(data || []);
 
     } catch (err) {
       console.error("Fetch error:", err);
@@ -39,31 +35,43 @@ const AttendancePage: React.FC = () => {
     }
   };
 
-  // =========================
-  // MARK ATTENDANCE
-  // =========================
-
-  const markAttendance = async (status: string) => {
-
+  // ================= CHECK IN =================
+const checkIn = async () => {
     try {
+await fetch("http://localhost:3001/api/attendance/checkin", {
+  method: "POST",
+headers: {
+ "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          employee_id: employeeId
+        })
+      });
+fetchAttendance();
 
-      await fetch("http://localhost:3001/api/attendance", {
+    } catch (err) {
+console.error("Checkin error:", err);
+}
+};
+
+ // ================= CHECK OUT =================
+const checkOut = async () => {
+    try {
+      await fetch("http://localhost:3001/api/attendance/checkout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          employee_id: employeeId,
-          status: status
+          employee_id: employeeId
         })
       });
 
       fetchAttendance();
 
     } catch (err) {
-      console.error("Mark error:", err);
+      console.error("Checkout error:", err);
     }
-
   };
 
   useEffect(() => {
@@ -78,33 +86,30 @@ const AttendancePage: React.FC = () => {
         Attendance 📅
       </h2>
 
-      {/* ================= MARK BUTTON ================= */}
-
-      {role === "Employee" && (
-
+      {/* ================= BUTTON ================= */}
+{/* 🔥 EMPLOYEE ONLY */}
+{!role.includes("manager") && !role.includes("lead") && (
         <div className="mb-6">
 
           <button
-            onClick={() => markAttendance("PRESENT")}
+            onClick={checkIn}
             className="bg-green-600 text-white px-4 py-2 rounded mr-2"
           >
-            Mark Present
+            Check In
           </button>
 
           <button
-            onClick={() => markAttendance("ABSENT")}
-            className="bg-red-600 text-white px-4 py-2 rounded"
+            onClick={checkOut}
+            className="bg-blue-600 text-white px-4 py-2 rounded"
           >
-            Mark Absent
+            Check Out
           </button>
 
         </div>
-
       )}
 
       {/* ================= TABLE ================= */}
-
-      {loading && <p>Loading...</p>}
+{loading && <p>Loading...</p>}
 
       <div className="bg-white shadow rounded">
 
@@ -113,30 +118,42 @@ const AttendancePage: React.FC = () => {
           <thead className="bg-gray-200">
             <tr>
               <th className="p-2">Date</th>
-              <th className="p-2">Status</th>
+              <th className="p-2">Check In</th>
+              <th className="p-2">Check Out</th>
             </tr>
           </thead>
 
           <tbody>
 
-            {attendance.map((a) => (
+            {attendance.length > 0 ? (
+              attendance.map((a) => (
 
-              <tr key={a.id} className="border-t">
+                <tr key={a.id} className="border-t">
 
-                <td className="p-2">{a.date}</td>
+                  <td className="p-2">{a.date}</td>
 
-                <td className="p-2 font-bold">
-                  {a.status === "PRESENT" && (
-                    <span className="text-green-600">PRESENT</span>
-                  )}
-                  {a.status === "ABSENT" && (
-                    <span className="text-red-600">ABSENT</span>
-                  )}
+                  <td className="p-2 text-green-600">
+                    {a.check_in
+                      ? new Date(a.check_in).toLocaleTimeString()
+                      : "-"}
+                  </td>
+
+                  <td className="p-2 text-blue-600">
+                    {a.check_out
+                      ? new Date(a.check_out).toLocaleTimeString()
+                      : "-"}
+                  </td>
+
+                </tr>
+
+              ))
+            ) : (
+              <tr>
+                <td colSpan={3} className="text-center p-4">
+                  No attendance data
                 </td>
-
               </tr>
-
-            ))}
+            )}
 
           </tbody>
 
