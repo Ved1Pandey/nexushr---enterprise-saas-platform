@@ -1,230 +1,137 @@
 import React, { useEffect, useState } from "react";
 
-interface Leave {
-  id: number;
-  employee_id: number;
-  from_date: string;
-  to_date: string;
-  reason: string;
-  status: string;
-  employees?: {
-    name: string;
-  };
-}
+const LeaveManagement = () => {
 
-const LeaveManagement: React.FC = () => {
-
-  const role = (localStorage.getItem("role") || "").toLowerCase();
+  const rawRole = (localStorage.getItem("role") || "").toLowerCase();
   const employeeId = Number(localStorage.getItem("id"));
 
-  const [leaves, setLeaves] = useState<Leave[]>([]);
-  const [loading, setLoading] = useState(false);
+  let role = "employee";
+  if (rawRole.includes("manager")) role = "manager";
+  else if (rawRole.includes("lead")) role = "lead";
+  else if (rawRole.includes("executive")) role = "employee";
 
+  const [leaves, setLeaves] = useState<any[]>([]);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [reason, setReason] = useState("");
 
-  // ================= FETCH =================
   const fetchLeaves = async () => {
-    try {
-      setLoading(true);
-
-      const res = await fetch(
-        `http://localhost:3001/api/leaves/${employeeId}/${role}`
-      );
-
-      const data = await res.json();
-      setLeaves(data || []);
-
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ================= APPLY =================
-  const applyLeave = async () => {
-
-    if (!fromDate || !toDate || !reason) {
-      alert("Fill all fields");
-      return;
-    }
-
-    try {
-      await fetch("http://localhost:3001/api/leaves", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          employee_id: employeeId,
-          from_date: fromDate,
-          to_date: toDate,
-          reason
-        })
-      });
-
-      setFromDate("");
-      setToDate("");
-      setReason("");
-
-      fetchLeaves();
-
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  // ================= APPROVE =================
-  const handleStatus = async (id: number, status: string) => {
-    try {
-      await fetch(`http://localhost:3001/api/leaves/${id}/status`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ status })
-      });
-
-      fetchLeaves();
-
-    } catch (err) {
-      console.error(err);
-    }
+    const res = await fetch(
+      `http://localhost:3001/api/leaves/${employeeId}/${role}`
+    );
+    const data = await res.json();
+    setLeaves(data || []);
   };
 
   useEffect(() => {
     fetchLeaves();
   }, []);
 
+  const applyLeave = async () => {
+    if (!fromDate || !toDate || !reason) {
+      alert("Fill all fields");
+      return;
+    }
+
+    await fetch("http://localhost:3001/api/leaves", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        employee_id: employeeId,
+        from_date: fromDate,
+        to_date: toDate,
+        reason
+      })
+    });
+
+    setFromDate("");
+    setToDate("");
+    setReason("");
+
+    fetchLeaves();
+  };
+
+  const handleStatus = async (id: number, status: string) => {
+    await fetch(`http://localhost:3001/api/leaves/${id}/status`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ status })
+    });
+
+    fetchLeaves();
+  };
+
   return (
-    <div className="max-w-5xl mx-auto p-6">
+    <div className="p-6">
 
-      <h2 className="text-2xl font-bold mb-6">
-        Leave Management 🚀
-      </h2>
+      <h2 className="text-xl font-bold mb-4">Leave Management</h2>
 
-      {/* 🔥 APPLY (ONLY EMPLOYEE) */}
+      {/* 🔥 APPLY */}
       {role === "employee" && (
-        <div className="mb-6 p-4 bg-white rounded-xl shadow">
+        <div className="mb-4">
 
-          <h3 className="font-semibold mb-3">Apply Leave</h3>
+          <input type="date" value={fromDate} onChange={(e)=>setFromDate(e.target.value)} className="border p-2 mr-2" />
+          <input type="date" value={toDate} onChange={(e)=>setToDate(e.target.value)} className="border p-2 mr-2" />
+          <input type="text" value={reason} onChange={(e)=>setReason(e.target.value)} placeholder="Reason" className="border p-2 mr-2" />
 
-          <div className="flex gap-2">
-
-            <input
-              type="date"
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-              className="border p-2 rounded"
-            />
-
-            <input
-              type="date"
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-              className="border p-2 rounded"
-            />
-
-            <input
-              type="text"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder="Reason"
-              className="border p-2 rounded"
-            />
-
-            <button
-              onClick={applyLeave}
-              className="bg-blue-600 text-white px-4 py-2 rounded"
-            >
-              Apply
-            </button>
-
-          </div>
+          <button onClick={applyLeave} className="bg-blue-600 text-white px-3 py-2">
+            Apply Leave
+          </button>
 
         </div>
       )}
 
       {/* TABLE */}
-      {loading && <p>Loading...</p>}
+      <table className="w-full border">
 
-      <div className="bg-white rounded-xl shadow">
+        <thead>
+          <tr>
+            <th>Emp</th>
+            <th>From</th>
+            <th>To</th>
+            <th>Reason</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
 
-        <table className="w-full">
+        <tbody>
+          {leaves.map((l) => (
+            <tr key={l.id} className="border">
 
-          <thead className="bg-gray-200">
-            <tr>
-              <th className="p-2">Employee</th>
-              <th className="p-2">From</th>
-              <th className="p-2">To</th>
-              <th className="p-2">Reason</th>
-              <th className="p-2">Status</th>
-              <th className="p-2">Action</th>
+              <td>{l.employees?.name || l.employee_id}</td>
+              <td>{l.from_date}</td>
+              <td>{l.to_date}</td>
+              <td>{l.reason}</td>
+              <td>{l.status}</td>
+
+              <td>
+                {(role === "manager" || role === "lead") &&
+                  l.status === "PENDING" && (
+                    <>
+                      <button onClick={()=>handleStatus(l.id,"APPROVED")} className="bg-green-500 text-white px-2 mr-2">
+                        Approve
+                      </button>
+
+                      <button onClick={()=>handleStatus(l.id,"REJECTED")} className="bg-red-500 text-white px-2">
+                        Reject
+                      </button>
+                    </>
+                  )}
+              </td>
+
             </tr>
-          </thead>
+          ))}
+        </tbody>
 
-          <tbody>
-
-            {leaves.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="text-center p-4">
-                  No leave records
-                </td>
-              </tr>
-            ) : (
-              leaves.map((l) => (
-                <tr key={l.id} className="border-t">
-
-                  <td className="p-2">
-                    {l.employees?.name || `Emp ${l.employee_id}`}
-                  </td>
-
-                  <td className="p-2">{l.from_date}</td>
-                  <td className="p-2">{l.to_date}</td>
-                  <td className="p-2">{l.reason}</td>
-
-                  <td className="p-2 font-bold">
-                    {l.status}
-                  </td>
-
-                  <td className="p-2">
-
-                    {(role.includes("manager") || role.includes("lead")) &&
-                      l.status === "PENDING" && (
-                        <>
-                          <button
-                            onClick={() => handleStatus(l.id, "APPROVED")}
-                            className="bg-green-600 text-white px-2 py-1 mr-2 rounded"
-                          >
-                            Approve
-                          </button>
-
-                          <button
-                            onClick={() => handleStatus(l.id, "REJECTED")}
-                            className="bg-red-600 text-white px-2 py-1 rounded"
-                          >
-                            Reject
-                          </button>
-                        </>
-                      )}
-
-                  </td>
-
-                </tr>
-              ))
-            )}
-
-          </tbody>
-
-        </table>
-
-      </div>
+      </table>
 
     </div>
   );
 };
 
 export default LeaveManagement;
-
