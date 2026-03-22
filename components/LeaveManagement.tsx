@@ -1,137 +1,65 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 
-const LeaveManagement = () => {
-
-  const rawRole = (localStorage.getItem("role") || "").toLowerCase();
-  const employeeId = Number(localStorage.getItem("id"));
-
-  let role = "employee";
-  if (rawRole.includes("manager")) role = "manager";
-  else if (rawRole.includes("lead")) role = "lead";
-  else if (rawRole.includes("executive")) role = "employee";
-
-  const [leaves, setLeaves] = useState<any[]>([]);
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
-  const [reason, setReason] = useState("");
-
-  const fetchLeaves = async () => {
-    const res = await fetch(
-      `http://localhost:3001/api/leaves/${employeeId}/${role}`
-    );
-    const data = await res.json();
-    setLeaves(data || []);
-  };
-
-  useEffect(() => {
-    fetchLeaves();
-  }, []);
-
-  const applyLeave = async () => {
-    if (!fromDate || !toDate || !reason) {
-      alert("Fill all fields");
-      return;
-    }
-
-    await fetch("http://localhost:3001/api/leaves", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        employee_id: employeeId,
-        from_date: fromDate,
-        to_date: toDate,
-        reason
-      })
-    });
-
-    setFromDate("");
-    setToDate("");
-    setReason("");
-
-    fetchLeaves();
-  };
-
-  const handleStatus = async (id: number, status: string) => {
-    await fetch(`http://localhost:3001/api/leaves/${id}/status`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ status })
-    });
-
-    fetchLeaves();
-  };
+const Dashboard = ({ onLogout }: any) => {
+  const name = localStorage.getItem("name");
+  const role = localStorage.getItem("role");
 
   return (
-    <div className="p-6">
+    <div className="flex min-h-screen bg-gray-100">
 
-      <h2 className="text-xl font-bold mb-4">Leave Management</h2>
+      {/* SIDEBAR */}
+      <div className="w-64 bg-white shadow-lg p-5">
+        <h1 className="text-xl font-bold mb-6 text-blue-600">
+          NexusHR
+        </h1>
 
-      {/* 🔥 APPLY */}
-      {role === "employee" && (
-        <div className="mb-4">
+        <ul className="space-y-4">
+          <li className="cursor-pointer">Dashboard</li>
+          <li className="cursor-pointer">Manage Leaves</li>
+          <li className="cursor-pointer">My Team</li>
+          <li className="cursor-pointer">Reports</li>
+        </ul>
+      </div>
 
-          <input type="date" value={fromDate} onChange={(e)=>setFromDate(e.target.value)} className="border p-2 mr-2" />
-          <input type="date" value={toDate} onChange={(e)=>setToDate(e.target.value)} className="border p-2 mr-2" />
-          <input type="text" value={reason} onChange={(e)=>setReason(e.target.value)} placeholder="Reason" className="border p-2 mr-2" />
+      {/* MAIN */}
+      <div className="flex-1">
 
-          <button onClick={applyLeave} className="bg-blue-600 text-white px-3 py-2">
-            Apply Leave
-          </button>
+        {/* HEADER */}
+        <div className="bg-white shadow p-4 flex justify-between">
+          <h2 className="text-lg font-semibold">Dashboard</h2>
+
+          <div className="flex items-center gap-4">
+            <span>{name} ({role})</span>
+
+            <button
+              onClick={onLogout}
+              className="bg-red-500 text-white px-3 py-1 rounded"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+
+        {/* CARDS */}
+        <div className="p-6 grid grid-cols-3 gap-6">
+
+          <div className="bg-white p-5 rounded shadow">
+            Manage Leaves
+          </div>
+
+          <div className="bg-white p-5 rounded shadow">
+            My Team
+          </div>
+
+          <div className="bg-white p-5 rounded shadow">
+            Reports
+          </div>
 
         </div>
-      )}
 
-      {/* TABLE */}
-      <table className="w-full border">
-
-        <thead>
-          <tr>
-            <th>Emp</th>
-            <th>From</th>
-            <th>To</th>
-            <th>Reason</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {leaves.map((l) => (
-            <tr key={l.id} className="border">
-
-              <td>{l.employees?.name || l.employee_id}</td>
-              <td>{l.from_date}</td>
-              <td>{l.to_date}</td>
-              <td>{l.reason}</td>
-              <td>{l.status}</td>
-
-              <td>
-                {(role === "manager" || role === "lead") &&
-                  l.status === "PENDING" && (
-                    <>
-                      <button onClick={()=>handleStatus(l.id,"APPROVED")} className="bg-green-500 text-white px-2 mr-2">
-                        Approve
-                      </button>
-
-                      <button onClick={()=>handleStatus(l.id,"REJECTED")} className="bg-red-500 text-white px-2">
-                        Reject
-                      </button>
-                    </>
-                  )}
-              </td>
-
-            </tr>
-          ))}
-        </tbody>
-
-      </table>
-
+      </div>
     </div>
   );
 };
 
-export default LeaveManagement;
+export default Dashboard;
