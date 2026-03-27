@@ -17,8 +17,7 @@ const Login = ({ onLogin }: any) => {
       const data = await res.json();
 
       if (data && data.id) {
-        localStorage.setItem("name", data.name);
-        localStorage.setItem("role", data.role);
+        localStorage.setItem("user", JSON.stringify(data));
         onLogin(data);
       } else {
         alert("Login failed");
@@ -30,10 +29,7 @@ const Login = ({ onLogin }: any) => {
 
   return (
     <div className="min-h-screen flex">
-
-      {/* LEFT SIDE (BRANDING) */}
       <div className="w-1/2 bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex flex-col justify-center items-center p-10">
-
         <h1 className="text-4xl font-bold mb-4">NexusHR</h1>
         <p className="text-lg opacity-90 mb-6">SaaS Platform for Smart Teams</p>
 
@@ -44,9 +40,7 @@ const Login = ({ onLogin }: any) => {
         </ul>
       </div>
 
-      {/* RIGHT SIDE (LOGIN BOX) */}
       <div className="w-1/2 flex justify-center items-center bg-gray-100">
-
         <div className="bg-white p-8 rounded-xl shadow-xl w-96">
 
           <h2 className="text-2xl font-semibold text-center mb-6">
@@ -75,7 +69,6 @@ const Login = ({ onLogin }: any) => {
             Login
           </button>
 
-          {/* CTA / SUBSCRIPTION */}
           <p className="text-center text-sm mt-6 text-gray-500">
             Don’t have an account?{" "}
             <span className="text-blue-600 cursor-pointer hover:underline">
@@ -85,7 +78,6 @@ const Login = ({ onLogin }: any) => {
 
         </div>
       </div>
-
     </div>
   );
 };
