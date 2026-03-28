@@ -2,17 +2,18 @@ import React, { useState } from "react";
 import Login from "./Login";
 import ApplyLeave from "./ApplyLeave";
 import ApproveLeaves from "./ApproveLeaves";
-import MyTeam from "./MyTeam";
 const App = () => {
 
   const [user, setUser] = useState<any>(
     JSON.parse(localStorage.getItem("user") || "null")
   );
+
   const [page, setPage] = useState("dashboard");
 
   if (!user) {
     return <Login onLogin={setUser} />;
   }
+
   const role = (user?.role || "").toLowerCase();
 
   return (
@@ -33,16 +34,19 @@ const App = () => {
             <button onClick={() => setPage("apply")}>
               Apply Leave
             </button>
+
             {(role.includes("manager") || role.includes("team")) && (
               <>
                 <button onClick={() => setPage("approve")}>
                   Approve Leaves
                 </button>
+
                 <button onClick={() => setPage("team")}>
                   My Team
                 </button>
               </>
             )}
+
           </div>
         </div>
 {/* LOGOUT */}
@@ -57,7 +61,8 @@ const App = () => {
         </button>
 
       </div>
-      {/* MAIN */}
+
+      {/* MAIN CONTENT */}
       <div className="flex-1 p-6">
 
         {/* HEADER */}
@@ -69,9 +74,19 @@ const App = () => {
         {/* DASHBOARD */}
         {page === "dashboard" && (
           <div className="grid grid-cols-3 gap-4">
-            <div className="p-4 bg-white shadow rounded">Manage Leaves</div>
-            <div className="p-4 bg-white shadow rounded">My Team</div>
-            <div className="p-4 bg-white shadow rounded">Reports</div>
+
+            <div className="p-4 bg-white shadow rounded">
+              Manage Leaves
+            </div>
+
+            <div className="p-4 bg-white shadow rounded">
+              My Team
+            </div>
+
+            <div className="p-4 bg-white shadow rounded">
+              Reports
+            </div>
+
           </div>
         )}
 
@@ -82,11 +97,16 @@ const App = () => {
         {page === "approve" && <ApproveLeaves />}
 
         {/* TEAM */}
-        {page === "team" && <MyTeam />}
+        {page === "team" && (
+          <div>
+            <h3 className="text-xl font-bold mb-3">My Team</h3>
+            <p>Team members will show here</p>
+          </div>
+        )}
 
       </div>
-
     </div>
   );
 };
+
 export default App;

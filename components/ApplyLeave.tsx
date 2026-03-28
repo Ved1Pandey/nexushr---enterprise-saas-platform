@@ -1,65 +1,103 @@
-import React from "react";
+import React, { useState } from "react";
 
-const Dashboard = ({ onLogout }: any) => {
-  const name = localStorage.getItem("name");
-  const role = localStorage.getItem("role");
+const ApplyLeave: React.FC = () => {
+
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [reason, setReason] = useState("");
+
+  const handleApplyLeave = async () => {
+
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+    console.log("USER:", user);
+
+    if (!user.id || !fromDate || !toDate || !reason) {
+      alert("All fields required");
+      return;
+    }
+
+    try {
+
+      console.log("SENDING:", {
+        employee_id: user.id,
+        from_date: fromDate,
+        to_date: toDate,
+        reason: reason
+      });
+
+      const res = await fetch("http://localhost:3001/api/leaves", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          employee_id: user.id,
+          from_date: fromDate,
+          to_date: toDate,
+          reason: reason
+        })
+      });
+
+      if (!res.ok) {
+        alert("Failed to apply leave");
+        return;
+      }
+
+      alert("Leave applied ✅");
+
+      setFromDate("");
+      setToDate("");
+      setReason("");
+
+    } catch (err) {
+      console.error(err);
+      alert("Server error");
+    }
+
+  };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="p-6">
 
-      {/* SIDEBAR */}
-      <div className="w-64 bg-white shadow-lg p-5">
-        <h1 className="text-xl font-bold mb-6 text-blue-600">
-          NexusHR
-        </h1>
+      <h2 className="text-xl font-bold mb-4">
+        Apply Leave
+      </h2>
 
-        <ul className="space-y-4">
-          <li className="cursor-pointer">Dashboard</li>
-          <li className="cursor-pointer">Manage Leaves</li>
-          <li className="cursor-pointer">My Team</li>
-          <li className="cursor-pointer">Reports</li>
-        </ul>
-      </div>
+      <div className="bg-white p-4 rounded shadow w-96">
 
-      {/* MAIN */}
-      <div className="flex-1">
+        <input
+          type="date"
+          value={fromDate}
+          onChange={(e) => setFromDate(e.target.value)}
+          className="border p-2 w-full mb-3"
+        />
 
-        {/* HEADER */}
-        <div className="bg-white shadow p-4 flex justify-between">
-          <h2 className="text-lg font-semibold">Dashboard</h2>
+        <input
+          type="date"
+          value={toDate}
+          onChange={(e) => setToDate(e.target.value)}
+          className="border p-2 w-full mb-3"
+        />
 
-          <div className="flex items-center gap-4">
-            <span>{name} ({role})</span>
+        <textarea
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder="Reason"
+          className="border p-2 w-full mb-3"
+        />
 
-            <button
-              onClick={onLogout}
-              className="bg-red-500 text-white px-3 py-1 rounded"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-
-        {/* CARDS */}
-        <div className="p-6 grid grid-cols-3 gap-6">
-
-          <div className="bg-white p-5 rounded shadow">
-            Manage Leaves
-          </div>
-
-          <div className="bg-white p-5 rounded shadow">
-            My Team
-          </div>
-
-          <div className="bg-white p-5 rounded shadow">
-            Reports
-          </div>
-
-        </div>
+        <button
+          onClick={handleApplyLeave}
+          className="bg-blue-600 text-white px-4 py-2 rounded w-full"
+        >
+          Submit
+        </button>
 
       </div>
+
     </div>
   );
 };
 
-export default Dashboard;
+export default ApplyLeave;
