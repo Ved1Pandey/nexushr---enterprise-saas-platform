@@ -10,21 +10,17 @@ const ApplyLeave: React.FC = () => {
 
     const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-    console.log("USER:", user);
+    if (!user.id) {
+      alert("User not found, login again");
+      return;
+    }
 
-    if (!user.id || !fromDate || !toDate || !reason) {
+    if (!fromDate || !toDate || !reason) {
       alert("All fields required");
       return;
     }
 
     try {
-
-      console.log("SENDING:", {
-        employee_id: user.id,
-        from_date: fromDate,
-        to_date: toDate,
-        reason: reason
-      });
 
       const res = await fetch("http://localhost:3001/api/leaves", {
         method: "POST",
@@ -35,12 +31,14 @@ const ApplyLeave: React.FC = () => {
           employee_id: user.id,
           from_date: fromDate,
           to_date: toDate,
-          reason: reason
+          reason
         })
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        alert("Failed to apply leave");
+        alert(data.error || "Failed");
         return;
       }
 
@@ -52,7 +50,7 @@ const ApplyLeave: React.FC = () => {
 
     } catch (err) {
       console.error(err);
-      alert("Server error");
+      alert("Server not running ❌");
     }
 
   };
@@ -60,9 +58,7 @@ const ApplyLeave: React.FC = () => {
   return (
     <div className="p-6">
 
-      <h2 className="text-xl font-bold mb-4">
-        Apply Leave
-      </h2>
+      <h2 className="text-xl font-bold mb-4">Apply Leave</h2>
 
       <div className="bg-white p-4 rounded shadow w-96">
 

@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
 
-const ApproveLeaves = () => {
+const ApproveLeaves: React.FC = () => {
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const role = (user.role || "").toLowerCase();
 
   const [leaves, setLeaves] = useState<any[]>([]);
 
-  // 🔥 FETCH LEAVES
   const fetchLeaves = async () => {
     try {
       const res = await fetch(
@@ -16,12 +15,17 @@ const ApproveLeaves = () => {
 
       const data = await res.json();
 
-      console.log("LEAVES:", data);
+      if (!Array.isArray(data)) {
+        console.log("API ERROR:", data);
+        setLeaves([]);
+        return;
+      }
 
-      setLeaves(data || []);
+      setLeaves(data);
 
     } catch (err) {
       console.error(err);
+      alert("Server not running ❌");
     }
   };
 
@@ -29,7 +33,6 @@ const ApproveLeaves = () => {
     fetchLeaves();
   }, []);
 
-  // 🔥 APPROVE / REJECT
   const handleStatus = async (id: number, status: string) => {
     try {
       await fetch(`http://localhost:3001/api/leaves/${id}/status`, {
@@ -40,38 +43,46 @@ const ApproveLeaves = () => {
         body: JSON.stringify({ status })
       });
 
-      fetchLeaves(); // refresh
-
+      fetchLeaves();
     } catch (err) {
       console.error(err);
     }
   };
 
   return (
-    <div>
+    <div className="p-6">
 
-      <h3>Approve Leaves</h3>
+      <h2 className="text-xl font-bold mb-4">Approve Leaves</h2>
 
       {leaves.length === 0 && <p>No leaves found</p>}
 
-      {leaves.map((l: any) => (
-        <div key={l.id} style={{ border: "1px solid gray", margin: 10, padding: 10 }}>
+      {leaves.map((l) => (
+        <div key={l.id} className="border p-3 mb-3 rounded">
 
-          <p><b>{l.employees?.name||"Employee"+l .employee_id }</b></p>
+          <p><b>{l.employees?.name || "User"}</b></p>
           <p>{l.from_date} → {l.to_date}</p>
           <p>{l.reason}</p>
-          <p>Status: {l.status}</p>
+
+          <p className="font-bold">{l.status}</p>
 
           {l.status === "PENDING" && (
-            <>
-              <button onClick={() => handleStatus(l.id, "APPROVED")}>
+            <div className="mt-2">
+
+              <button
+                onClick={() => handleStatus(l.id, "APPROVED")}
+                className="bg-green-500 text-white px-3 py-1 mr-2 rounded"
+              >
                 Approve
               </button>
 
-              <button onClick={() => handleStatus(l.id, "REJECTED")}>
+              <button
+                onClick={() => handleStatus(l.id, "REJECTED")}
+                className="bg-red-500 text-white px-3 py-1 rounded"
+              >
                 Reject
               </button>
-            </>
+
+            </div>
           )}
 
         </div>
