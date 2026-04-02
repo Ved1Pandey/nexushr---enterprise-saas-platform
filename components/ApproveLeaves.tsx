@@ -1,31 +1,20 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
-const ApproveLeaves: React.FC = () => {
+const ApproveLeaves = () => {
+  const [leaves, setLeaves] = useState<any[]>([]);
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const role = (user.role || "").toLowerCase();
-
-  const [leaves, setLeaves] = useState<any[]>([]);
 
   const fetchLeaves = async () => {
     try {
       const res = await fetch(
-        `http://localhost:3001/api/leaves/${user.id}/${role}`
+        `http://localhost:3001/api/leaves/${user.id}/${user.role}`
       );
-
       const data = await res.json();
-
-      if (!Array.isArray(data)) {
-        console.log("API ERROR:", data);
-        setLeaves([]);
-        return;
-      }
-
+      console.log("DATA:", data);
       setLeaves(data);
-
     } catch (err) {
-      console.error(err);
-      alert("Server not running ❌");
+      console.error("ERROR:", err);
     }
   };
 
@@ -33,61 +22,42 @@ const ApproveLeaves: React.FC = () => {
     fetchLeaves();
   }, []);
 
-  const handleStatus = async (id: number, status: string) => {
-    try {
-      await fetch(`http://localhost:3001/api/leaves/${id}/status`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ status })
-      });
+  const updateStatus = async (id: number, status: string) => {
+    await fetch(`http://localhost:3001/api/leaves/${id}/status`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ status }),
+    });
 
-      fetchLeaves();
-    } catch (err) {
-      console.error(err);
-    }
+    fetchLeaves(); // refresh
   };
 
   return (
-    <div className="p-6">
+    <div style={{ padding: 20 }}>
+      <h2>Approve Leaves</h2>
 
-      <h2 className="text-xl font-bold mb-4">Approve Leaves</h2>
+      {leaves.length === 0 ? (
+        <p>No leaves found</p>
+      ) : (
+        leaves.map((l) => (
+          <div key={l.id} style={{ border: "1px solid gray", margin: 10, padding: 10 }}>
+            <p><b>Emp ID:</b> {l.employee_id}</p>
+            <p><b>From:</b> {l.from_date}</p>
+            <p><b>To:</b> {l.to_date}</p>
+            <p><b>Status:</b> {l.status}</p>
 
-      {leaves.length === 0 && <p>No leaves found</p>}
+            <button onClick={() => updateStatus(l.id, "APPROVED")}>
+              Approve
+            </button>
 
-      {leaves.map((l) => (
-        <div key={l.id} className="border p-3 mb-3 rounded">
-
-          <p><b>{l.employees?.name || "User"}</b></p>
-          <p>{l.from_date} → {l.to_date}</p>
-          <p>{l.reason}</p>
-
-          <p className="font-bold">{l.status}</p>
-
-          {l.status === "PENDING" && (
-            <div className="mt-2">
-
-              <button
-                onClick={() => handleStatus(l.id, "APPROVED")}
-                className="bg-green-500 text-white px-3 py-1 mr-2 rounded"
-              >
-                Approve
-              </button>
-
-              <button
-                onClick={() => handleStatus(l.id, "REJECTED")}
-                className="bg-red-500 text-white px-3 py-1 rounded"
-              >
-                Reject
-              </button>
-
-            </div>
-          )}
-
-        </div>
-      ))}
-
+            <button onClick={() => updateStatus(l.id, "REJECTED")}>
+              Reject
+            </button>
+          </div>
+        ))
+      )}
     </div>
   );
 };
